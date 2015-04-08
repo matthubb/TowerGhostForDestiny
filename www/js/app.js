@@ -780,19 +780,23 @@ var app = new (function() {
 				self.loadingUser(false);
 			}
 		}
+		console.log("loadData called");
 		if (self.loadingUser() == false){
 			self.loadingUser(true);
 			self.bungie = new bungie(self.bungie_cookies); 
 			self.characters.removeAll();
+			console.log("user");
 			self.bungie.user(function(user){
 				self.activeUser(user);
 				if (user.error){
 					self.loadingUser(false);
 					return
 				}
+				console.log("search");
 				self.bungie.search(function(e){
 					var avatars = e.data.characters;
 					total = avatars.length + 1;
+					console.log("vault");
 					self.bungie.vault(function(results){
 						var buckets = results.data.buckets;
 						var profile = new Profile({ 
@@ -894,20 +898,26 @@ var app = new (function() {
 	this.openBungieWindow = function(type){
 		return function(){
 			var loop, newCookie;
+			console.log(4);
 			//overwrite the same reference to avoid crashing?
 			window.ref = window.open('https://www.bungie.net/en/User/SignIn/' + type, '_blank', 'location=yes');			
 			if (isMobile){
 				ref.addEventListener('loadstop', function(event) {
+					console.log(5);
 					if (self.listenerEnabled() == true){
+						console.log(6);
 						clearInterval(loop);
 						loop = setInterval(function() {
+							console.log(7);
 							ref.executeScript({
 								code: 'document.cookie'
 							}, function(result) {
+								console.log(8);
 								console.log("found result in loadstop " + result);
 								if ((result || "").toString().indexOf("bungled") > -1){
 									self.bungie_cookies = result;
 									window.localStorage.setItem("bungie_cookies", result);
+									console.log(9);									
 									self.loadData();
 									ref.close();
 									clearInterval(loop);
@@ -917,16 +927,19 @@ var app = new (function() {
 					}
 				});
 				ref.addEventListener('loadstart', function(event) {
+					console.log(10);
 					clearInterval(loop);
 				});
 				ref.addEventListener('exit', function() {
 					if (self.characters().length == 0){
+						console.log(11);
 						clearInterval(loop);
 						if (_.isEmpty(self.bungie_cookies)){
+							console.log(12);
 							loop = setInterval(function() {
 								ref.executeScript({
 									code: 'document.cookie'
-								}, function(result) {
+								}, function(result) {								
 									console.log("found result in exit " + result);
 									if ((result || "").toString().indexOf("bungled") > -1){
 										self.bungie_cookies = result;
@@ -956,6 +969,7 @@ var app = new (function() {
 	}
 	
 	this.init = function(){
+		console.log(1);
 		self.doRefresh.subscribe(self.refreshHandler);
 		self.refreshSeconds.subscribe(self.refreshHandler);
 		self.loadoutMode.subscribe(self.refreshHandler);		
@@ -971,6 +985,7 @@ var app = new (function() {
 		    document.getElementsByTagName("head")[0].appendChild(msViewportStyle);
 		  }
 		})();
+		console.log(2);
 		if (!_.isEmpty(_loadouts)){
 			self.loadouts(
 				_.map(JSON.parse(_loadouts), function(loadout){
@@ -978,7 +993,7 @@ var app = new (function() {
 				})
 			);
 		}		
-		
+		console.log(3);
 		if (isMobile && isEmptyCookie){
 			console.log("code 99");
 			self.activeUser({"code": 99, "error": "Please sign-in to continue."});
